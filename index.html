@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARB-Legal Forced Induction Guide for Scion FR-S</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
+    <!-- Application Structure Plan: The application is structured as a decision-making funnel. It starts with a high-level introduction (Hero), moves to the fundamental choice between technologies (Supercharger vs. Turbo) with an interactive chart, then presents a filterable dashboard of specific products (Comparison Dashboard). It concludes with critical long-term considerations (Reliability & Costs) and actionable recommendations. This structure guides the user from broad concepts to specific, informed choices, prioritizing usability over mirroring the linear report format. -->
+    <!-- Visualization & Content Choices: The core visualization is an interactive Chart.js line chart to compare the distinct power curves of different forced induction types, which is more intuitive than text. This directly addresses the report's analysis of power delivery. Product data is organized into filterable cards for easy comparison, a standard and effective UI pattern. Key concepts are reinforced with Unicode icons and structured HTML/CSS for visual clarity. The goal is to translate the report's dense text into a scannable, interactive decision-making tool. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #383736;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+            color: #797775;
+        }
+        .nav-button:hover, .nav-button.active {
+            color: #C46210;
+            border-bottom-color: #C46210;
+        }
+        .filter-button {
+            transition: all 0.3s ease;
+            border: 1px solid #D1CFCB;
+        }
+        .filter-button.active, .filter-button:hover {
+            background-color: #C46210;
+            color: #FFFFFF;
+            border-color: #C46210;
+        }
+        .kit-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #EAE8E4;
+        }
+        .kit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .details-button {
+            transition: background-color 0.3s ease;
+        }
+        .details-button:hover {
+            background-color: #A3520E;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-[#C46210]">FR-S</span>
+                    <span class="font-bold text-xl text-gray-700">Boost</span>
+                    <span class="font-light text-xl text-gray-500">Guide</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#home" class="nav-button px-3 py-2 rounded-md text-sm font-medium border-b-2 border-transparent">Home</a>
+                        <a href="#comparison" class="nav-button px-3 py-2 rounded-md text-sm font-medium border-b-2 border-transparent">Comparison</a>
+                        <a href="#kits" class="nav-button px-3 py-2 rounded-md text-sm font-medium border-b-2 border-transparent">Kits</a>
+                        <a href="#reliability" class="nav-button px-3 py-2 rounded-md text-sm font-medium border-b-2 border-transparent">Reliability</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="py-20 md:py-32">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-800">Unlock Your FR-S's Potential.</h1>
+                <p class="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-gray-600">Explore CARB-legal supercharger and turbocharger options for your 2015 Scion FR-S. This guide helps you understand the technology, compare kits, and make an informed decision to safely and legally boost your performance.</p>
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-500">Stock Horsepower</h3>
+                        <p class="text-4xl font-bold text-[#C46210] mt-2">200 <span class="text-2xl font-medium text-gray-400">HP</span></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-500">Stock Torque</h3>
+                        <p class="text-4xl font-bold text-[#C46210] mt-2">151 <span class="text-2xl font-medium text-gray-400">lb-ft</span></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-500">Key Challenge</h3>
+                        <p class="text-2xl font-semibold text-gray-700 mt-2">Mid-Range Torque Dip</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-800">Supercharger vs. Turbocharger</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">The first step is understanding the fundamental difference in how power is delivered. Your choice here defines the driving feel of your car.</p>
+                </div>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-[#FDFBF8] p-8 rounded-xl border border-gray-200">
+                        <h3 class="text-2xl font-bold text-gray-800">Superchargers</h3>
+                        <p class="mt-2 text-gray-600">Belt-driven for instant power. Feels like a larger, more powerful factory engine.</p>
+                        <ul class="mt-6 space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-green-500 text-2xl mr-3">✓</span>
+                                <div><strong class="font-semibold">Instant Power:</strong> No lag. Power is available immediately across the rev range.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 text-2xl mr-3">✓</span>
+                                <div><strong class="font-semibold">Linear Delivery:</strong> Smooth and predictable power increase that's easy to manage.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 text-2xl mr-3">✗</span>
+                                <div><strong class="font-semibold">Parasitic Load:</strong> Always drawing power from the engine, which can slightly reduce fuel efficiency.</div>
+                            </li>
+                        </ul>
+                    </div>
+                     <div class="bg-[#FDFBF8] p-8 rounded-xl border border-gray-200">
+                        <h3 class="text-2xl font-bold text-gray-800">Turbochargers</h3>
+                        <p class="mt-2 text-gray-600">Exhaust-driven for high efficiency and strong mid-range punch.</p>
+                        <ul class="mt-6 space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-green-500 text-2xl mr-3">✓</span>
+                                <div><strong class="font-semibold">High Efficiency:</strong> Uses waste exhaust gas, imposing less load on the engine during cruising.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-500 text-2xl mr-3">✓</span>
+                                <div><strong class="font-semibold">Strong Mid-Range:</strong> Delivers a powerful surge of torque once the turbo spools up.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 text-2xl mr-3">✗</span>
+                                <div><strong class="font-semibold">Potential Lag:</strong> A slight delay before boost builds, though modern turbos have minimized this.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-16">
+                    <h3 class="text-2xl font-bold text-center text-gray-800">Visualizing the Power Curves</h3>
+                    <p class="mt-2 text-center text-gray-600">This chart illustrates the typical torque curves. Notice how the stock curve has a dip, which all kits aim to fix. Select multiple options to compare.</p>
+                    <div class="chart-container mt-8">
+                        <canvas id="powerCurveChart"></canvas>
+                    </div>
+                    <div class="mt-6 flex justify-center space-x-2 md:space-x-4">
+                        <button data-type="roots" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Roots Supercharger</button>
+                        <button data-type="centrifugal" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Centrifugal Supercharger</button>
+                        <button data-type="turbo" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Turbocharger</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="kits" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-800">Compare CARB-Legal Kits</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">Filter and explore the details of each available system. All kits listed here have a valid CARB E.O. number for the 2015 Scion FR-S.</p>
+                </div>
+                <div class="mt-10 flex justify-center space-x-2">
+                    <button class="filter-button active px-4 py-2 rounded-full text-sm font-medium" data-filter="all">All</button>
+                    <button class="filter-button px-4 py-2 rounded-full text-sm font-medium" data-filter="supercharger">Superchargers</button>
+                    <button class="filter-button px-4 py-2 rounded-full text-sm font-medium" data-filter="turbocharger">Turbochargers</button>
+                </div>
+                <div id="kits-grid" class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+            </div>
+        </section>
+        
+        <section id="reliability" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-800">Reliability & Long-Term Costs</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">Forced induction is more than just the kit. Proper supporting mods and maintenance are crucial for longevity.</p>
+                </div>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-[#C46210]/10 text-[#C46210]">
+                                <span class="text-2xl">🔧</span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-bold">Essential Supporting Mods</h3>
+                            <p class="mt-2 text-gray-600">To handle the extra power and heat reliably, these are highly recommended: an <strong class="font-semibold">oil cooler</strong> (most critical), an <strong class="font-semibold">upgraded clutch</strong> for manual cars, and a <strong class="font-semibold">catch can</strong> to protect your engine.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-[#C46210]/10 text-[#C46210]">
+                                <span class="text-2xl">🗓️</span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-bold">Accelerated Maintenance</h3>
+                            <p class="mt-2 text-gray-600">Your maintenance schedule must become more frequent. Plan for <strong class="font-semibold">oil changes every 3,000-5,000 miles</strong>, more frequent spark plug replacements, and regular checks of all fluid levels and connections.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-[#C46210]/10 text-[#C46210]">
+                                <span class="text-2xl">💰</span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-bold">The True Cost of Boost</h3>
+                            <p class="mt-2 text-gray-600">The total investment includes the kit, professional installation, supporting mods, and ongoing maintenance. Budgeting for these additional costs is key to a successful and stress-free ownership experience.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-[#C46210]/10 text-[#C46210]">
+                                <span class="text-2xl">✅</span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-bold">Use the Provided Tune</h3>
+                            <p class="mt-2 text-gray-600">Your CARB E.O. is only valid with the specific ECU tune provided by the manufacturer. <strong class="font-semibold">Do not use a custom tune</strong> if you wish to remain emissions-compliant. Professional installation is highly recommended.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">This guide is for informational purposes, based on the "CARB-Compliant Forced Induction Solutions" report. Always verify the latest product details, pricing, and CARB E.O. status with the manufacturer before purchasing.</p>
+        </div>
+    </footer>
+
+    <div id="modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div id="modal-content" class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95">
+        </div>
+    </div>
+
+    <script>
+        const kitsData = [
+            {
+                name: 'Jackson Racing C38',
+                type: 'supercharger',
+                typeDisplay: 'Centrifugal Supercharger',
+                hp: 300,
+                tq: 219,
+                price: '5,199 - 6,199',
+                eo: 'D-700-9',
+                boost: 'N/A',
+                features: 'Uses a quiet Rotrex C38-81 unit. Includes a self-contained oiling system, high-quality Setrab oil cooler, and a front-mount air-to-air intercooler. Known for smooth, linear power delivery and extensive durability testing.',
+                reliability: 'Stock clutch has been tested for over 15,000 miles, but an upgrade is recommended for aggressive use. Good reliability reported with proper tune and maintenance.'
+            },
+            {
+                name: 'Vortech Supercharger',
+                type: 'supercharger',
+                typeDisplay: 'Centrifugal Supercharger',
+                hp: 294,
+                tq: 210,
+                price: '8,354',
+                eo: 'D-213-35',
+                boost: '9 psi',
+                features: 'Features a gear-driven V-3 H67B supercharger with an internal oil reservoir for easy maintenance. Includes an integrated air-to-air charge cooler with an oversized core. Claims high adiabatic efficiency for less heat.',
+                reliability: 'Some users advise caution and recommend professional installation. Ensuring all supporting mods are in place is key for long-term health.'
+            },
+            {
+                name: 'Edelbrock E-Force',
+                type: 'supercharger',
+                typeDisplay: 'Roots Supercharger',
+                hp: '242 (RWHP)',
+                tq: '186 (RWTQ)',
+                price: '7,000 - 7,350',
+                eo: 'D-215-116',
+                boost: '9 psi',
+                features: 'Eaton TVS 1320 rotor in a unique inverted design for compact packaging. Features a large dual-pass air-to-water intercooler. Known for instant low-end torque and eliminating the factory torque dip. Fits under the stock hood.',
+                reliability: 'Generally praised for ease of installation and reliability at stock pulley size. Some users recommend a catch can. Optional 5-year/100k mile warranty available.'
+            },
+            {
+                name: 'WORKS Stage 1 Turbo',
+                type: 'turbocharger',
+                typeDisplay: 'Turbocharger',
+                hp: 270,
+                tq: 201,
+                price: '3,847 - 4,555',
+                eo: 'D-748',
+                boost: '7 psi',
+                features: 'Uses a Garrett GT28 turbo. Designed for simple, non-invasive installation (no bumper removal). Retains factory airbox and catalytic converters. Excellent value for performance gained.',
+                reliability: 'Development car ran for ~30,000 miles without issues. An oil cooler is highly recommended for track use. Praised for fantastic gains for the price.'
+            },
+            {
+                name: 'WORKS Stage 2 Turbo',
+                type: 'turbocharger',
+                typeDisplay: 'Turbocharger',
+                hp: 290,
+                tq: 241,
+                price: '5,199 - 5,956',
+                eo: 'D-748',
+                boost: '12 psi',
+                features: 'Builds on Stage 1 with an air-to-liquid intercooler and higher boost. Offers a significant jump in power and torque. Retains key OEM components for compliance. Provides a clear upgrade path from Stage 1.',
+                reliability: 'Similar to Stage 1, but the higher power makes an oil cooler and stiffer motor mounts even more important for track use. Requires front bumper removal for installation.'
+            }
+        ];
+
+        const kitsGrid = document.getElementById('kits-grid');
+        const filterButtons = document.querySelectorAll('.filter-button');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalOverlay = document.querySelector('.modal-overlay');
+
+        function createKitCard(kit) {
+            const isRwhp = typeof kit.hp === 'string' && kit.hp.includes('RWHP');
+            const card = document.createElement('div');
+            card.className = `kit-card bg-white rounded-xl shadow-md overflow-hidden p-6 flex flex-col justify-between kit-item ${kit.type}`;
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-xl font-bold text-gray-800">${kit.name}</h3>
+                        <span class="text-xs font-semibold ${kit.type === 'supercharger' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full">${kit.typeDisplay}</span>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <p class="text-sm text-gray-500">HP Gain</p>
+                            <p class="text-2xl font-bold text-[#C46210]">${kit.hp}</p>
+                            ${isRwhp ? '<p class="text-xs text-gray-400">(at the wheels)</p>' : ''}
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Torque Gain</p>
+                            <p class="text-2xl font-bold text-[#C46210]">${kit.tq}</p>
+                             ${isRwhp ? '<p class="text-xs text-gray-400">(at the wheels)</p>' : ''}
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="text-sm text-gray-500">Estimated Price</p>
+                        <p class="text-2xl font-bold text-gray-700">$${kit.price}</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button class="details-button w-full bg-[#C46210] text-white font-bold py-2 px-4 rounded-lg">View Details</button>
+                </div>
+            `;
+            card.querySelector('.details-button').addEventListener('click', () => showModal(kit));
+            return card;
+        }
+
+        function populateKits(filter = 'all') {
+            kitsGrid.innerHTML = '';
+            const filteredKits = filter === 'all' ? kitsData : kitsData.filter(k => k.type === filter);
+            filteredKits.forEach(kit => {
+                kitsGrid.appendChild(createKitCard(kit));
+            });
+        }
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                populateKits(button.dataset.filter);
+            });
+        });
+
+        function showModal(kit) {
+            modalContent.innerHTML = `
+                <div class="p-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">${kit.name}</h2>
+                        <button id="close-modal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    </div>
+                    <div class="space-y-6 text-gray-700">
+                        <p><strong class="font-semibold text-gray-900">Type:</strong> ${kit.typeDisplay}</p>
+                        <p><strong class="font-semibold text-gray-900">CARB E.O. #:</strong> ${kit.eo}</p>
+                        <p><strong class="font-semibold text-gray-900">Peak Boost:</strong> ${kit.boost}</p>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">Key Features:</h4>
+                            <p>${kit.features}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">Reliability Notes:</h4>
+                            <p>${kit.reliability}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalOverlay.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+            document.getElementById('close-modal').addEventListener('click', hideModal);
+        }
+
+        function hideModal() {
+            modalOverlay.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateKits();
+        });
+
+        const rpmLabels = ['2000', '2500', '3000', '3500', '4000', '4500', '5000', '5500', '6000', '6500', '7000', '7400'];
+        const stockTorque = [130, 135, 140, 132, 125, 130, 138, 144, 148, 150, 151, 145];
+
+        const torqueData = {
+            roots: {
+                label: 'Roots Supercharger Torque',
+                data: [175, 180, 185, 186, 186, 185, 184, 182, 180, 178, 175, 170],
+                borderColor: 'rgba(196, 98, 16, 0.8)', // Orange
+                backgroundColor: 'rgba(196, 98, 16, 0.2)'
+            },
+            centrifugal: {
+                label: 'Centrifugal Supercharger Torque',
+                data: [135, 145, 160, 175, 190, 200, 210, 215, 218, 219, 215, 210],
+                borderColor: 'rgba(59, 130, 246, 0.8)', // Blue
+                backgroundColor: 'rgba(59, 130, 246, 0.2)'
+            },
+            turbo: {
+                label: 'Turbocharger Torque',
+                data: [130, 140, 170, 200, 220, 240, 241, 238, 235, 230, 220, 210],
+                borderColor: 'rgba(239, 68, 68, 0.8)', // Red
+                backgroundColor: 'rgba(239, 68, 68, 0.2)'
+            }
+        };
+
+        let powerCurveChart;
+        let selectedChartTypes = ['roots']; // Initial selection
+
+        function renderChart() {
+            const ctx = document.getElementById('powerCurveChart').getContext('2d');
+            if (powerCurveChart) {
+                powerCurveChart.destroy();
+            }
+
+            const datasets = [{
+                label: 'Stock FR-S Torque',
+                data: stockTorque,
+                borderColor: 'rgba(156, 163, 175, 0.8)',
+                backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: true,
+            }];
+
+            selectedChartTypes.forEach(type => {
+                if (torqueData[type]) {
+                    datasets.push({
+                        label: torqueData[type].label,
+                        data: torqueData[type].data,
+                        borderColor: torqueData[type].borderColor,
+                        backgroundColor: torqueData[type].backgroundColor,
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true,
+                    });
+                }
+            });
+
+            powerCurveChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: rpmLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Torque (lb-ft)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Engine RPM'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        const chartToggleButtons = document.querySelectorAll('.chart-toggle-button');
+
+        function toggleChartType(type) {
+            const index = selectedChartTypes.indexOf(type);
+            const button = document.querySelector(`.chart-toggle-button[data-type="${type}"]`);
+
+            if (index > -1) {
+                selectedChartTypes.splice(index, 1); // Remove type
+                button.classList.remove('bg-[#C46210]', 'text-white');
+                button.classList.add('bg-gray-200', 'text-gray-700');
+            } else {
+                selectedChartTypes.push(type); // Add type
+                button.classList.add('bg-[#C46210]', 'text-white');
+                button.classList.remove('bg-gray-200', 'text-gray-700');
+            }
+            renderChart();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial button active state
+            chartToggleButtons.forEach(btn => {
+                const type = btn.dataset.type;
+                if (selectedChartTypes.includes(type)) {
+                    btn.classList.add('bg-[#C46210]', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'text-gray-700');
+                }
+                // Add event listener here
+                btn.addEventListener('click', () => toggleChartType(type));
+            });
+            renderChart(); // Initial render
+        });
+        
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('nav a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 80) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active', 'text-[#C46210]', 'border-[#C46210]');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active', 'text-[#C46210]', 'border-[#C46210]');
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
