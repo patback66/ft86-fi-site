@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
-    <!-- Application Structure Plan: The application is structured as a decision-making funnel. It starts with a high-level introduction (Hero), moves to the fundamental choice between technologies (Supercharger vs. Turbo) with an interactive chart, then presents a filterable dashboard of specific products (Comparison Dashboard). It concludes with critical long-term considerations (Reliability & Costs) and actionable recommendations. This structure guides the user from broad concepts to specific, informed choices, prioritizing usability over mirroring the linear report format. -->
-    <!-- Visualization & Content Choices: The core visualization is an interactive Chart.js line chart to compare the distinct power curves of different forced induction types, which is more intuitive than text. This directly addresses the report's analysis of power delivery. Product data is organized into filterable cards for easy comparison, a standard and effective UI pattern. Key concepts are reinforced with Unicode icons and structured HTML/CSS for visual clarity. The goal is to translate the report's dense text into a scannable, interactive decision-making tool. -->
+    <!-- Application Structure Plan: The application is structured as a decision-making funnel. It starts with a high-level introduction (Hero), moves to the fundamental choice between technologies (Supercharger vs. Turbo) with interactive charts, then presents a filterable dashboard of specific products (Comparison Dashboard). It concludes with critical long-term considerations (Reliability & Costs) and actionable recommendations. This structure guides the user from broad concepts to specific, informed choices, prioritizing usability over mirroring the linear report format. -->
+    <!-- Visualization & Content Choices: The core visualizations are interactive Chart.js line charts to compare the distinct power and torque curves of different forced induction types, which is more intuitive than text. This directly addresses the report's analysis of power delivery. Product data is organized into filterable cards for easy comparison, a standard and effective UI pattern. Key concepts are reinforced with Unicode icons and structured HTML/CSS for visual clarity. The goal is to translate the report's dense text into a scannable, interactive decision-making tool. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -161,15 +161,28 @@
                     </div>
                 </div>
                 <div class="mt-16">
-                    <h3 class="text-2xl font-bold text-center text-gray-800">Visualizing the Power Curves</h3>
+                    <h3 class="text-2xl font-bold text-center text-gray-800">Visualizing the Torque Curves</h3>
                     <p class="mt-2 text-center text-gray-600">This chart illustrates the typical torque curves. Notice how the stock curve has a dip, which all kits aim to fix. Select multiple options to compare.</p>
                     <div class="chart-container mt-8">
-                        <canvas id="powerCurveChart"></canvas>
+                        <canvas id="torqueCurveChart"></canvas>
                     </div>
                     <div class="mt-6 flex justify-center space-x-2 md:space-x-4">
-                        <button data-type="roots" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Roots Supercharger</button>
-                        <button data-type="centrifugal" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Centrifugal Supercharger</button>
-                        <button data-type="turbo" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Turbocharger</button>
+                        <button data-chart="torque" data-type="roots" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Roots Supercharger</button>
+                        <button data-chart="torque" data-type="centrifugal" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Centrifugal Supercharger</button>
+                        <button data-chart="torque" data-type="turbo" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Turbocharger</button>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                    <h3 class="text-2xl font-bold text-center text-gray-800">Visualizing the Horsepower Curves</h3>
+                    <p class="mt-2 text-center text-gray-600">This chart illustrates the typical horsepower curves. Select multiple options to compare.</p>
+                    <div class="chart-container mt-8">
+                        <canvas id="horsepowerCurveChart"></canvas>
+                    </div>
+                    <div class="mt-6 flex justify-center space-x-2 md:space-x-4">
+                        <button data-chart="horsepower" data-type="roots" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Roots Supercharger</button>
+                        <button data-chart="horsepower" data-type="centrifugal" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Centrifugal Supercharger</button>
+                        <button data-chart="horsepower" data-type="turbo" class="chart-toggle-button bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">Turbocharger</button>
                     </div>
                 </div>
             </div>
@@ -404,8 +417,13 @@
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modalOverlay.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-95'); // Keep it scaled down initially
             }, 10);
+            // Animate in
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+            }, 50);
+
             document.getElementById('close-modal').addEventListener('click', hideModal);
         }
 
@@ -429,6 +447,7 @@
 
         const rpmLabels = ['2000', '2500', '3000', '3500', '4000', '4500', '5000', '5500', '6000', '6500', '7000', '7400'];
         const stockTorque = [130, 135, 140, 132, 125, 130, 138, 144, 148, 150, 151, 145];
+        const stockHorsepower = [50, 64, 80, 88, 95, 111, 131, 152, 170, 185, 200, 200]; // Calculated from HP = (Torque * RPM) / 5252
 
         const torqueData = {
             roots: {
@@ -451,13 +470,36 @@
             }
         };
 
-        let powerCurveChart;
-        let selectedChartTypes = ['roots']; // Initial selection
+        const horsepowerData = {
+            roots: {
+                label: 'Roots Supercharger HP',
+                data: [67, 86, 105, 125, 141, 160, 175, 191, 205, 219, 233, 240],
+                borderColor: 'rgba(196, 98, 16, 0.8)', // Orange
+                backgroundColor: 'rgba(196, 98, 16, 0.2)'
+            },
+            centrifugal: {
+                label: 'Centrifugal Supercharger HP',
+                data: [51, 69, 91, 118, 144, 171, 199, 225, 249, 269, 287, 296],
+                borderColor: 'rgba(59, 130, 246, 0.8)', // Blue
+                backgroundColor: 'rgba(59, 130, 246, 0.2)'
+            },
+            turbo: {
+                label: 'Turbocharger HP',
+                data: [50, 67, 97, 135, 167, 205, 229, 250, 268, 284, 293, 296],
+                borderColor: 'rgba(239, 68, 68, 0.8)', // Red
+                backgroundColor: 'rgba(239, 68, 68, 0.2)'
+            }
+        };
 
-        function renderChart() {
-            const ctx = document.getElementById('powerCurveChart').getContext('2d');
-            if (powerCurveChart) {
-                powerCurveChart.destroy();
+        let torqueChartInstance;
+        let horsepowerChartInstance;
+        let selectedTorqueTypes = ['roots']; // Initial selection for torque
+        let selectedHorsepowerTypes = ['roots']; // Initial selection for horsepower
+
+        function renderTorqueChart() {
+            const ctx = document.getElementById('torqueCurveChart').getContext('2d');
+            if (torqueChartInstance) {
+                torqueChartInstance.destroy();
             }
 
             const datasets = [{
@@ -471,7 +513,7 @@
                 fill: true,
             }];
 
-            selectedChartTypes.forEach(type => {
+            selectedTorqueTypes.forEach(type => {
                 if (torqueData[type]) {
                     datasets.push({
                         label: torqueData[type].label,
@@ -486,7 +528,7 @@
                 }
             });
 
-            powerCurveChart = new Chart(ctx, {
+            torqueChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: rpmLabels,
@@ -528,36 +570,133 @@
             });
         }
 
+        function renderHorsepowerChart() {
+            const ctx = document.getElementById('horsepowerCurveChart').getContext('2d');
+            if (horsepowerChartInstance) {
+                horsepowerChartInstance.destroy();
+            }
+
+            const datasets = [{
+                label: 'Stock FR-S Horsepower',
+                data: stockHorsepower,
+                borderColor: 'rgba(156, 163, 175, 0.8)',
+                backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: true,
+            }];
+
+            selectedHorsepowerTypes.forEach(type => {
+                if (horsepowerData[type]) {
+                    datasets.push({
+                        label: horsepowerData[type].label,
+                        data: horsepowerData[type].data,
+                        borderColor: horsepowerData[type].borderColor,
+                        backgroundColor: horsepowerData[type].backgroundColor,
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true,
+                    });
+                }
+            });
+
+            horsepowerChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: rpmLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Horsepower (HP)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Engine RPM'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
         const chartToggleButtons = document.querySelectorAll('.chart-toggle-button');
 
-        function toggleChartType(type) {
-            const index = selectedChartTypes.indexOf(type);
-            const button = document.querySelector(`.chart-toggle-button[data-type="${type}"]`);
+        function toggleChartType(chartType, dataType) {
+            let selectedTypesArray;
+            let renderFunction;
+
+            if (chartType === 'torque') {
+                selectedTypesArray = selectedTorqueTypes;
+                renderFunction = renderTorqueChart;
+            } else if (chartType === 'horsepower') {
+                selectedTypesArray = selectedHorsepowerTypes;
+                renderFunction = renderHorsepowerChart;
+            } else {
+                return;
+            }
+
+            const index = selectedTypesArray.indexOf(dataType);
+            const button = document.querySelector(`.chart-toggle-button[data-chart="${chartType}"][data-type="${dataType}"]`);
 
             if (index > -1) {
-                selectedChartTypes.splice(index, 1); // Remove type
+                selectedTypesArray.splice(index, 1); // Remove type
                 button.classList.remove('bg-[#C46210]', 'text-white');
                 button.classList.add('bg-gray-200', 'text-gray-700');
             } else {
-                selectedChartTypes.push(type); // Add type
+                selectedTypesArray.push(dataType); // Add type
                 button.classList.add('bg-[#C46210]', 'text-white');
                 button.classList.remove('bg-gray-200', 'text-gray-700');
             }
-            renderChart();
+            renderFunction();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Set initial button active state
-            chartToggleButtons.forEach(btn => {
+            // Set initial button active state for torque chart
+            document.querySelectorAll('.chart-toggle-button[data-chart="torque"]').forEach(btn => {
                 const type = btn.dataset.type;
-                if (selectedChartTypes.includes(type)) {
+                if (selectedTorqueTypes.includes(type)) {
                     btn.classList.add('bg-[#C46210]', 'text-white');
                     btn.classList.remove('bg-gray-200', 'text-gray-700');
                 }
-                // Add event listener here
-                btn.addEventListener('click', () => toggleChartType(type));
+                btn.addEventListener('click', () => toggleChartType('torque', type));
             });
-            renderChart(); // Initial render
+            renderTorqueChart(); // Initial render for torque
+
+            // Set initial button active state for horsepower chart
+            document.querySelectorAll('.chart-toggle-button[data-chart="horsepower"]').forEach(btn => {
+                const type = btn.dataset.type;
+                if (selectedHorsepowerTypes.includes(type)) {
+                    btn.classList.add('bg-[#C46210]', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'text-gray-700');
+                }
+                btn.addEventListener('click', () => toggleChartType('horsepower', type));
+            });
+            renderHorsepowerChart(); // Initial render for horsepower
         });
         
         const sections = document.querySelectorAll('section');
